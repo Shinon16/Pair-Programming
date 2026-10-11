@@ -9,7 +9,7 @@
 |---|---|---|---|
 | 04 | Christian | Alex | Selección dinámica de monedas mediante origen.value y destino.value. |
 | 05 | Pablo | Christian | Conversión completa: cálculo separado en funciones y resultado formateado con Intl.NumberFormat. |
-| 06 | | | |
+| 06 | Christian | Pablo | Intercambio de monedas y recalculo |
 | 07 | | | |
 | 08 | | | |
 | 09 | | | |

@@ -61,11 +61,15 @@ function calcularConversion(valor, tasa) {
 }
 
 function intercambiarMonedas() {
-  // TODO · MISIÓN 06:
-  // 1) guardar temporalmente el valor de origen
-  // 2) intercambiar origen.value y destino.value
-  // 3) volver a calcular
-  mostrarError("Misión 06 pendiente: implementa el intercambio de monedas.");
+  // Guardamos temporalmente la moneda de origen
+  const monedaTemporal = origen.value;
+
+  // Intercambiamos los valores de los selectores
+  origen.value = destino.value;
+  destino.value = monedaTemporal;
+
+  // Realizamos nuevamente la conversión
+  convertirMoneda();
 }
 
 // 4. UTILIDADES DE INTERFAZ
