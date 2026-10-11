@@ -1,13 +1,13 @@
 # Currency Explorer · Starter Project
 
 ## Integrantes
-- Estudiante A:
+- Estudiante A: Christian Raul Paramo Bautista 
 - Estudiante B:
 
 ## Pair Programming
 | Misión | Driver | Navigator | Commit / evidencia |
 |---|---|---|---|
-| 04 | | | |
+| 04 | Christian | Alex | Selección dinámica de monedas mediante origen.value y destino.value. |
 | 05 | | | |
 | 06 | | | |
 | 07 | | | |

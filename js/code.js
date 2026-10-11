@@ -31,8 +31,8 @@ async function convertirMoneda() {
   }
 
   // TODO · MISIÓN 04: reemplazar EUR y USD por los valores elegidos en los <select>.
-  const monedaOrigen = "EUR";
-  const monedaDestino = "USD";
+  const monedaOrigen = origen.value;
+  const monedaDestino = destino.value;
 
   const url = `https://api.frankfurter.dev/v2/rate/${monedaOrigen}/${monedaDestino}`;
 
