@@ -11,7 +11,7 @@
 | 05 | Pablo | Christian | Conversión completa: cálculo separado en funciones y resultado formateado con Intl.NumberFormat. |
 | 06 | Christian | Pablo | Intercambio de monedas y recalculo |
 | 07 | Pablo | Christian | Validación completa: vacío, no numérico, cero y negativo, con mensajes específicos y sin consultar la API. |
-| 08 | | | |
+| 08 | Christian | Pablo | Estado de carga, controles deshabilitados y restauración con finally  |
 | 09 | | | |
 | 10 | | | |
 

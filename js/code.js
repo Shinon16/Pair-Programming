@@ -45,20 +45,26 @@ async function convertirMoneda() {
   const url = `https://api.frankfurter.dev/v2/rate/${monedaOrigen}/${monedaDestino}`;
 
   try {
-    // TODO · MISIÓN 08: activar un estado visual de carga antes de consultar.
+  // MISIÓN 08: activar el estado de carga antes de consultar la API.
+    establecerCarga(true);
+
     const respuesta = await fetch(url);
 
     // TODO · MISIÓN 09: comprobar response.ok y lanzar un error si corresponde.
     const datos = await respuesta.json();
 
-    // MISIÓN 05: conversión completa (cantidad + tasa + resultado formateado).
+    // MISIÓN 05: conversión completa.
     const conversion = calcularConversion(valor, datos.rate);
     mostrarResultado(valor, conversion, monedaOrigen, monedaDestino, datos);
 
   } catch (error) {
-    // TODO · MISIÓN 09: mejora el mensaje y analiza qué errores pueden llegar aquí.
+    // TODO · MISIÓN 09: mejorar el manejo de errores.
     mostrarError("No fue posible completar la consulta.");
     console.error(error);
+
+  } finally {
+    // MISIÓN 08: restaurar los controles cuando termine la consulta.
+    establecerCarga(false);
   }
 }
 
@@ -123,6 +129,29 @@ function mostrarError(mensaje) {
 function marcarCantidadInvalida(invalida) {
   cantidad.classList.toggle("invalido", invalida);
   cantidad.setAttribute("aria-invalid", String(invalida));
+}
+
+// MISIÓN 08: controla el estado de carga de la aplicación.
+function establecerCarga(cargando) {
+
+  // Deshabilitar botones mientras se consulta la API.
+  btnConvertir.disabled = cargando;
+  btnIntercambiar.disabled = cargando;
+
+  // Deshabilitar temporalmente los campos.
+  cantidad.disabled = cargando;
+  origen.disabled = cargando;
+  destino.disabled = cargando;
+
+  // Mostrar un mensaje mientras esperamos la respuesta.
+  if (cargando) {
+    resultado.classList.remove("error");
+
+    resultadoTexto.textContent = "Consultando...";
+
+    detalleTasa.textContent =
+      "Obteniendo el tipo de cambio actualizado.";
+  }
 }
 
 // MISIÓN 05: muestra en el DOM el resultado ya formateado.
