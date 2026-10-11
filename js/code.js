@@ -17,18 +17,26 @@ const detalleTasa = document.querySelector("#detalleTasa");
 btnConvertir.addEventListener("click", convertirMoneda);
 btnIntercambiar.addEventListener("click", intercambiarMonedas);
 
+// MISIÓN 07: al volver a escribir, el campo deja de marcarse como inválido.
+cantidad.addEventListener("input", () => marcarCantidadInvalida(false));
+
 // 3. FUNCIÓN PRINCIPAL
 async function convertirMoneda() {
   // Misiones guiadas 1-3: ya existe un flujo mínimo funcional EUR -> USD.
   // A partir de la Misión 4 debes convertirlo en una solución dinámica.
 
-  const valor = Number(cantidad.value);
+  // MISIÓN 07: validación completa antes de consultar la API.
+  // Si la cantidad no es válida se muestra el motivo y no se hace el fetch().
+  const validacion = validarCantidad();
 
-  // TODO · MISIÓN 07: sustituir esta validación mínima por una validación completa.
-  if (!Number.isFinite(valor) || valor <= 0) {
-    mostrarError("Escribe una cantidad mayor que cero.");
+  if (validacion.error) {
+    marcarCantidadInvalida(true);
+    mostrarError(validacion.error);
     return;
   }
+
+  marcarCantidadInvalida(false);
+  const valor = validacion.valor;
 
   // TODO · MISIÓN 04: reemplazar EUR y USD por los valores elegidos en los <select>.
   const monedaOrigen = origen.value;
@@ -60,6 +68,38 @@ function calcularConversion(valor, tasa) {
   return valor * tasa;
 }
 
+// MISIÓN 07: revisa la cantidad escrita y regresa { valor } si es válida
+// o { error } con un mensaje específico si no lo es.
+function validarCantidad() {
+  // Un <input type="number"> deja .value vacío cuando el texto no es un número
+  // (por ejemplo "1e" o "--5"); validity.badInput permite distinguir ese caso.
+  if (cantidad.validity.badInput) {
+    return { error: "La cantidad no es un número válido." };
+  }
+
+  const texto = cantidad.value.trim();
+
+  if (texto === "") {
+    return { error: "Escribe una cantidad para convertir." };
+  }
+
+  const valor = Number(texto);
+
+  if (!Number.isFinite(valor)) {
+    return { error: "La cantidad no es un número válido." };
+  }
+
+  if (valor === 0) {
+    return { error: "La cantidad debe ser mayor que cero." };
+  }
+
+  if (valor < 0) {
+    return { error: "No se permiten cantidades negativas." };
+  }
+
+  return { valor };
+}
+
 function intercambiarMonedas() {
   // Guardamos temporalmente la moneda de origen
   const monedaTemporal = origen.value;
@@ -77,6 +117,12 @@ function mostrarError(mensaje) {
   resultado.classList.add("error");
   resultadoTexto.textContent = mensaje;
   detalleTasa.textContent = "Revisa los datos e inténtalo nuevamente.";
+}
+
+// MISIÓN 07: marca (o desmarca) el campo de cantidad como inválido.
+function marcarCantidadInvalida(invalida) {
+  cantidad.classList.toggle("invalido", invalida);
+  cantidad.setAttribute("aria-invalid", String(invalida));
 }
 
 // MISIÓN 05: muestra en el DOM el resultado ya formateado.

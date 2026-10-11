@@ -10,7 +10,7 @@
 | 04 | Christian | Alex | Selección dinámica de monedas mediante origen.value y destino.value. |
 | 05 | Pablo | Christian | Conversión completa: cálculo separado en funciones y resultado formateado con Intl.NumberFormat. |
 | 06 | Christian | Pablo | Intercambio de monedas y recalculo |
-| 07 | | | |
+| 07 | Pablo | Christian | Validación completa: vacío, no numérico, cero y negativo, con mensajes específicos y sin consultar la API. |
 | 08 | | | |
 | 09 | | | |
 | 10 | | | |
@@ -32,7 +32,7 @@ Endpoint de referencia:
 Registra aquí al menos dos decisiones tomadas por la pareja y explica por qué.
 
 1. Misión 05: usamos `Intl.NumberFormat` para formatear los montos en lugar de sólo `toFixed(2)`, porque agrega separador de miles (2,041.00) y respeta los decimales de cada moneda (el yen no usa decimales).
-2. 
+2. Misión 07: validamos la cantidad antes del `fetch()` para no hacer peticiones innecesarias a la API, y usamos `cantidad.validity.badInput` porque un `<input type="number">` devuelve `""` cuando el texto escrito no es un número, así podemos distinguir "vacío" de "no válido".
 
 ## Revisión cruzada
 - Aspecto bien resuelto:
