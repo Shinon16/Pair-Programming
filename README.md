@@ -2,13 +2,13 @@
 
 ## Integrantes
 - Estudiante A: Christian Raul Paramo Bautista 
-- Estudiante B:
+- Estudiante B: Pablo Alexander Alejos Macias
 
 ## Pair Programming
 | Misión | Driver | Navigator | Commit / evidencia |
 |---|---|---|---|
 | 04 | Christian | Alex | Selección dinámica de monedas mediante origen.value y destino.value. |
-| 05 | | | |
+| 05 | Pablo | Christian | Conversión completa: cálculo separado en funciones y resultado formateado con Intl.NumberFormat. |
 | 06 | | | |
 | 07 | | | |
 | 08 | | | |
@@ -31,7 +31,7 @@ Endpoint de referencia:
 ## Decisiones técnicas
 Registra aquí al menos dos decisiones tomadas por la pareja y explica por qué.
 
-1. 
+1. Misión 05: usamos `Intl.NumberFormat` para formatear los montos en lugar de sólo `toFixed(2)`, porque agrega separador de miles (2,041.00) y respeta los decimales de cada moneda (el yen no usa decimales).
 2. 
 
 ## Revisión cruzada

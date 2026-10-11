@@ -43,17 +43,21 @@ async function convertirMoneda() {
     // TODO · MISIÓN 09: comprobar response.ok y lanzar un error si corresponde.
     const datos = await respuesta.json();
 
-    const conversion = valor * datos.rate;
-
-    resultado.classList.remove("error");
-    resultadoTexto.textContent = `${valor.toFixed(2)} ${monedaOrigen} = ${conversion.toFixed(2)} ${monedaDestino}`;
-    detalleTasa.textContent = `1 ${monedaOrigen} = ${datos.rate} ${monedaDestino} · ${datos.date}`;
+    // MISIÓN 05: conversión completa (cantidad + tasa + resultado formateado).
+    const conversion = calcularConversion(valor, datos.rate);
+    mostrarResultado(valor, conversion, monedaOrigen, monedaDestino, datos);
 
   } catch (error) {
     // TODO · MISIÓN 09: mejora el mensaje y analiza qué errores pueden llegar aquí.
     mostrarError("No fue posible completar la consulta.");
     console.error(error);
   }
+}
+
+// MISIÓN 05: el cálculo vive en su propia función para poder entenderlo,
+// probarlo y reutilizarlo (por ejemplo, al recalcular en la Misión 06).
+function calcularConversion(valor, tasa) {
+  return valor * tasa;
 }
 
 function intercambiarMonedas() {
@@ -69,6 +73,35 @@ function mostrarError(mensaje) {
   resultado.classList.add("error");
   resultadoTexto.textContent = mensaje;
   detalleTasa.textContent = "Revisa los datos e inténtalo nuevamente.";
+}
+
+// MISIÓN 05: muestra en el DOM el resultado ya formateado.
+function mostrarResultado(valor, conversion, monedaOrigen, monedaDestino, datos) {
+  resultado.classList.remove("error");
+  resultadoTexto.textContent =
+    `${formatearMonto(valor, monedaOrigen)} = ${formatearMonto(conversion, monedaDestino)}`;
+  detalleTasa.textContent =
+    `1 ${monedaOrigen} = ${datos.rate} ${monedaDestino} · Tasa del ${formatearFecha(datos.date)} (Frankfurter)`;
+}
+
+// MISIÓN 05: agrega separador de miles y usa los decimales propios de cada
+// moneda (EUR, USD, MXN y GBP usan 2; JPY usa 0).
+function formatearMonto(monto, moneda) {
+  const decimales = new Intl.NumberFormat("es-MX", { style: "currency", currency: moneda })
+    .resolvedOptions().maximumFractionDigits;
+
+  const numero = new Intl.NumberFormat("es-MX", {
+    minimumFractionDigits: decimales,
+    maximumFractionDigits: decimales
+  }).format(monto);
+
+  return `${numero} ${moneda}`;
+}
+
+// MISIÓN 05: convierte la fecha de la API ("AAAA-MM-DD") a "DD/MM/AAAA".
+function formatearFecha(fechaISO) {
+  const [anio, mes, dia] = fechaISO.split("-");
+  return `${dia}/${mes}/${anio}`;
 }
 
 // PISTA PARA EL RETO:
