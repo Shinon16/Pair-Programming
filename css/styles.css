@@ -58,6 +58,135 @@ select:disabled {
   transform: none;
 }
 
+/* ============================================================
+   MISIÓN 11: HISTÓRICO
+   ============================================================ */
+
+.history {
+  margin-top: 22px;
+  padding: 20px 22px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 12px;
+}
+
+.history[hidden] {
+  display: none;
+}
+
+.history-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.history-head h2 {
+  margin: 0;
+}
+
+.period-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.period {
+  border: 1px solid var(--line);
+  background: #fbfcfd;
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: .82rem;
+  cursor: pointer;
+}
+
+.period:hover {
+  background: var(--soft);
+}
+
+.period.activo {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+
+.history-summary {
+  margin: 0;
+  color: var(--muted);
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
+.history.error .history-summary {
+  color: #8a4b0c;
+}
+
+.chart {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.chart svg {
+  display: block;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.chart-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.chart-axis-text {
+  fill: var(--muted);
+  font-size: 11px;
+}
+
+.chart-area {
+  fill: rgba(22,117,139,.10);
+}
+
+.chart-line {
+  fill: none;
+  stroke: var(--teal);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart-guide {
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.chart-dot {
+  fill: var(--teal);
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.chart-tooltip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 12px));
+  background: var(--ink);
+  color: #fff;
+  font-size: .78rem;
+  padding: 6px 9px;
+  border-radius: 8px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.chart-tooltip[hidden] {
+  display: none;
+}
+
 /* Tablets */
 @media (max-width: 768px) {
   .app-shell {
@@ -139,6 +268,15 @@ select:disabled {
   .result strong {
     font-size: 1.15rem;
     line-height: 1.5;
+  }
+
+  /* MISIÓN 11: histórico en celular */
+  .history {
+    padding: 16px;
+  }
+
+  .period {
+    padding: 6px 10px;
   }
 
   .footer-note {

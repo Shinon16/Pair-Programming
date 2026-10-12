@@ -14,7 +14,7 @@
 | 08 | Christian | Pablo | Estado de carga, controles deshabilitados y restauración con finally  |
 | 09 | Pablo | Christian | Manejo de errores: response.ok, límite de 10 s con AbortController y mensaje claro según el tipo de fallo. |
 | 10 | Christian | Pablo | Diseño responsive para movil y escritorio |
-| 11 | | | |
+| 11 | Pablo | Christian | Histórico: serie temporal con /v2/rates, gráfica de línea en SVG con tooltip y resumen de variación por periodo. |
 
 ## Objetivo
 Completar una aplicación frontend que consuma Frankfurter API para convertir divisas y demostrar comprensión de eventos, DOM, `fetch()`, JSON, asincronía, validación y manejo de errores.
@@ -40,6 +40,7 @@ git clone https://github.com/Shinon16/Pair-Programming.git
 6. Presionar Convertir para obtener el resultado.
 7. Utilizar el botón de intercambio para invertir las monedas cuando sea necesario.
 8. Para observar la comunicación con la API, abrir las herramientas de desarrollador del navegador mediante F12 y acceder a las pestañas Console y Network.
+9. Después de convertir aparece la sección Histórico: elegir 7 días, 30 días, 90 días o 1 año y pasar el cursor sobre la gráfica para ver la tasa de cada fecha.
 
 ## API
 Endpoint de referencia:
@@ -55,6 +56,7 @@ Registra aquí al menos dos decisiones tomadas por la pareja y explica por qué.
 5. Misión 08 – Estado de carga: implementamos la función establecerCarga() para mostrar el mensaje "Consultando..." y deshabilitar temporalmente los controles mientras se realiza la solicitud. Utilizamos finally para asegurar que los controles vuelvan a habilitarse, incluso cuando ocurre un error.
 6. Misión 09: separamos la consulta en `obtenerTasa()` y le pusimos un límite de 10 segundos con `AbortController`, porque `fetch()` no tiene tiempo límite y, sin él, los controles deshabilitados en la Misión 08 se quedarían bloqueados si la red no responde. Además revisamos `response.ok`, ya que `fetch()` no lanza error ante un 404 o 500.
 7. Misión 10 – Diseño responsive: utilizamos CSS Grid y media queries para adaptar la interfaz a diferentes dispositivos. Decidimos organizar los selectores horizontalmente en computadoras y verticalmente en celulares, mejorando la visualización y facilidad de uso sin modificar la lógica JavaScript.
+8. Misión 11 – Histórico: dibujamos la gráfica con SVG y JavaScript puro en lugar de usar una librería como Chart.js, para mantener el proyecto en HTML, CSS y JavaScript Vanilla y poder explicar cada parte (escalas, línea, área y tooltip). Para el periodo de 1 año pedimos `group=week`, un punto por semana, para no traer ~365 puntos que no aportan a la gráfica. Además reutilizamos `consultarAPI()` y `describirError()` de la Misión 09, así el histórico tiene el mismo límite de tiempo y los mismos mensajes de error.
 
 ## Revisión cruzada
 - Aspecto bien resuelto:
@@ -67,10 +69,6 @@ Durante la revisión se identificó que las solicitudes a la API podían tardar 
 Implementar un límite de tiempo para las solicitudes, mensajes de error específicos y controles deshabilitados durante la consulta. Asimismo, mejorar la distribución de los elementos mediante media queries para facilitar el uso desde dispositivos móviles.
 
 - Cambio incorporado después de la revisión:
-Implementar un límite de tiempo para las solicitudes, mensajes de error específicos y controles deshabilitados durante la consulta. Asimismo, mejorar la distribución de los elementos mediante media queries para facilitar el uso desde dispositivos móviles.
-
-Cambio incorporado después de la revisión:
-
 Se implementó AbortController con un límite de espera de 10 segundos, se mejoró el manejo de errores mediante response.ok y se incorporaron mensajes específicos para diferentes fallos. Además, se ajustó el diseño responsive para presentar los selectores verticalmente en pantallas pequeñas y mejorar la visualización de los resultados.
 
 ## Reflexión final (150–200 palabras)

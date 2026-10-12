@@ -13,12 +13,40 @@ const resultado = document.querySelector("#resultado");
 const resultadoTexto = document.querySelector("#resultadoTexto");
 const detalleTasa = document.querySelector("#detalleTasa");
 
+// MISIÓN 11: referencias de la sección de histórico.
+const historico = document.querySelector("#historico");
+const historicoResumen = document.querySelector("#historicoResumen");
+const grafica = document.querySelector("#grafica");
+const botonesPeriodo = document.querySelectorAll(".period");
+
+// MISIÓN 11: estado del histórico.
+let diasHistorico = 30;      // periodo elegido (7, 30, 90 o 365 días)
+let parHistorico = null;     // { origen, destino } de la última conversión exitosa
+let ultimaSerie = null;      // última serie dibujada (para redibujar al cambiar el tamaño)
+let contadorHistorico = 0;   // identifica la consulta más reciente
+
 // 2. EVENTOS
 btnConvertir.addEventListener("click", convertirMoneda);
 btnIntercambiar.addEventListener("click", intercambiarMonedas);
 
 // MISIÓN 07: al volver a escribir, el campo deja de marcarse como inválido.
 cantidad.addEventListener("input", () => marcarCantidadInvalida(false));
+
+// MISIÓN 11: cada botón de periodo vuelve a cargar el histórico.
+botonesPeriodo.forEach((boton) => {
+  boton.addEventListener("click", () => {
+    diasHistorico = Number(boton.dataset.dias);
+    marcarPeriodoActivo();
+    cargarHistorico();
+  });
+});
+
+// MISIÓN 11: la gráfica se redibuja con el nuevo ancho (por ejemplo, al girar el celular).
+window.addEventListener("resize", () => {
+  if (ultimaSerie) {
+    dibujarGrafica(ultimaSerie.serie, ultimaSerie.monedaDestino);
+  }
+});
 
 // 3. FUNCIÓN PRINCIPAL
 async function convertirMoneda() {
@@ -54,6 +82,11 @@ async function convertirMoneda() {
     const conversion = calcularConversion(valor, datos.rate);
     mostrarResultado(valor, conversion, monedaOrigen, monedaDestino, datos);
 
+    // MISIÓN 11: con la conversión lista, se carga el histórico del mismo par.
+    // No se espera con await: el histórico tiene su propio estado de carga y errores.
+    parHistorico = { origen: monedaOrigen, destino: monedaDestino };
+    cargarHistorico();
+
   } catch (error) {
     // MISIÓN 09: cada tipo de fallo muestra un mensaje distinto y la interfaz
     // se recupera (el finally de la Misión 08 vuelve a habilitar los controles).
@@ -76,11 +109,10 @@ function calcularConversion(valor, tasa) {
 // MISIÓN 09: tiempo máximo de espera de la API (en milisegundos).
 const TIEMPO_LIMITE_MS = 10000;
 
-// MISIÓN 09: consulta la API y regresa los datos sólo si la respuesta es correcta.
-// Si cambiáramos Frankfurter por otra API, ésta sería la función a modificar.
-async function obtenerTasa(monedaOrigen, monedaDestino) {
-  const url = `https://api.frankfurter.dev/v2/rate/${monedaOrigen}/${monedaDestino}`;
-
+// MISIÓN 09 (reorganizada en la 11): hace la petición con límite de tiempo y
+// comprueba response.ok. La usan la conversión y el histórico.
+// Si cambiáramos Frankfurter por otra API, aquí y en las URL estaría el cambio.
+async function consultarAPI(url) {
   // AbortController cancela la petición si tarda más del límite; así los
   // controles que deshabilita la Misión 08 no se quedan bloqueados.
   const controlador = new AbortController();
@@ -98,16 +130,89 @@ async function obtenerTasa(monedaOrigen, monedaDestino) {
     }
 
     // response.json() lanza SyntaxError si el cuerpo no es JSON válido.
-    const datos = await respuesta.json();
-
-    if (!Number.isFinite(datos.rate)) {
-      throw new SyntaxError("La respuesta no contiene una tasa válida.");
-    }
-
-    return datos;
+    return await respuesta.json();
 
   } finally {
     clearTimeout(temporizador);
+  }
+}
+
+// MISIÓN 09: obtiene la tasa actual del par y revisa que sea un número válido.
+async function obtenerTasa(monedaOrigen, monedaDestino) {
+  const url = `https://api.frankfurter.dev/v2/rate/${monedaOrigen}/${monedaDestino}`;
+  const datos = await consultarAPI(url);
+
+  if (!Number.isFinite(datos.rate)) {
+    throw new SyntaxError("La respuesta no contiene una tasa válida.");
+  }
+
+  return datos;
+}
+
+// MISIÓN 11: consulta la serie temporal del par en los últimos "dias" días.
+// La API regresa un arreglo: [{ date, base, quote, rate }, ...]
+async function obtenerHistorico(monedaOrigen, monedaDestino, dias) {
+  const hasta = new Date();
+  const desde = new Date();
+  desde.setDate(hasta.getDate() - dias);
+
+  // Para un año se pide un punto por semana (group=week) en lugar de ~365 puntos.
+  const agrupar = dias > 90 ? "&group=week" : "";
+
+  const url = `https://api.frankfurter.dev/v2/rates?base=${monedaOrigen}&quotes=${monedaDestino}` +
+    `&from=${fechaISO(desde)}&to=${fechaISO(hasta)}${agrupar}`;
+
+  const serie = await consultarAPI(url);
+
+  if (!Array.isArray(serie) || !serie.every((punto) => Number.isFinite(punto.rate))) {
+    throw new SyntaxError("La serie histórica no tiene el formato esperado.");
+  }
+
+  return serie;
+}
+
+// MISIÓN 11: carga el histórico del último par convertido y lo muestra.
+async function cargarHistorico() {
+  if (!parHistorico) {
+    return;
+  }
+
+  const { origen: monedaOrigen, destino: monedaDestino } = parHistorico;
+  const consulta = ++contadorHistorico;
+
+  historico.hidden = false;
+  historico.classList.remove("error");
+  historicoResumen.textContent = `Consultando el histórico ${monedaOrigen} → ${monedaDestino}...`;
+  grafica.replaceChildren();
+  ultimaSerie = null;
+
+  try {
+    const serie = await obtenerHistorico(monedaOrigen, monedaDestino, diasHistorico);
+
+    // Si mientras tanto se pidió otro periodo u otro par, esta respuesta ya no sirve.
+    if (consulta !== contadorHistorico) {
+      return;
+    }
+
+    if (serie.length < 2) {
+      historicoResumen.textContent = "No hay suficientes datos para este periodo.";
+      return;
+    }
+
+    historicoResumen.textContent = resumirSerie(serie, monedaOrigen, monedaDestino);
+    ultimaSerie = { serie, monedaDestino };
+    dibujarGrafica(serie, monedaDestino);
+
+  } catch (error) {
+    if (consulta !== contadorHistorico) {
+      return;
+    }
+
+    // Reutiliza los mensajes de la Misión 09, pero sin tocar el resultado de la conversión.
+    const fallo = describirError(error);
+    historico.classList.add("error");
+    historicoResumen.textContent = `No se pudo cargar el histórico. ${fallo.mensaje} ${fallo.detalle}`;
+    console.error(error);
   }
 }
 
@@ -253,6 +358,158 @@ function formatearMonto(monto, moneda) {
 function formatearFecha(fechaISO) {
   const [anio, mes, dia] = fechaISO.split("-");
   return `${dia}/${mes}/${anio}`;
+}
+
+// MISIÓN 11: marca el botón del periodo elegido.
+function marcarPeriodoActivo() {
+  botonesPeriodo.forEach((boton) => {
+    const activo = Number(boton.dataset.dias) === diasHistorico;
+    boton.classList.toggle("activo", activo);
+    boton.setAttribute("aria-pressed", String(activo));
+  });
+}
+
+// MISIÓN 11: resumen en texto de la serie (también sirve para lectores de pantalla).
+function resumirSerie(serie, monedaOrigen, monedaDestino) {
+  const tasas = serie.map((punto) => punto.rate);
+  const primera = tasas[0];
+  const ultima = tasas[tasas.length - 1];
+  const variacion = ((ultima - primera) / primera) * 100;
+  const periodo = document.querySelector(".period.activo").textContent;
+
+  let tendencia = "se mantuvo sin cambios";
+  if (variacion > 0) {
+    tendencia = `subió ${variacion.toFixed(2)}%`;
+  } else if (variacion < 0) {
+    tendencia = `bajó ${Math.abs(variacion).toFixed(2)}%`;
+  }
+
+  return `${monedaOrigen} → ${monedaDestino} ${tendencia} en ${periodo} · ` +
+    `mín. ${formatearTasa(Math.min(...tasas))} · máx. ${formatearTasa(Math.max(...tasas))}`;
+}
+
+// MISIÓN 11: muestra una tasa con hasta 5 cifras significativas (20.41, 0.0063, 158.24).
+function formatearTasa(tasa) {
+  return new Intl.NumberFormat("es-MX", { maximumSignificantDigits: 5 }).format(tasa);
+}
+
+// MISIÓN 11: convierte un Date a "AAAA-MM-DD", el formato que pide la API.
+function fechaISO(fecha) {
+  const anio = fecha.getFullYear();
+  const mes = String(fecha.getMonth() + 1).padStart(2, "0");
+  const dia = String(fecha.getDate()).padStart(2, "0");
+  return `${anio}-${mes}-${dia}`;
+}
+
+// MISIÓN 11: crea un elemento SVG con sus atributos.
+function crearSVG(etiqueta, atributos) {
+  const elemento = document.createElementNS("http://www.w3.org/2000/svg", etiqueta);
+  for (const [nombre, valor] of Object.entries(atributos)) {
+    elemento.setAttribute(nombre, valor);
+  }
+  return elemento;
+}
+
+// MISIÓN 11: dibuja la serie como gráfica de línea en SVG, sin librerías.
+function dibujarGrafica(serie, monedaDestino) {
+  grafica.replaceChildren();
+
+  // Tamaño real del contenedor: así el texto no se encoge en el celular.
+  const ancho = Math.max(grafica.clientWidth, 260);
+  const alto = 220;
+  const margen = { arriba: 16, derecha: 12, abajo: 28, izquierda: 58 };
+  const anchoUtil = ancho - margen.izquierda - margen.derecha;
+  const altoUtil = alto - margen.arriba - margen.abajo;
+
+  // Rango del eje Y con un pequeño margen arriba y abajo.
+  const tasas = serie.map((punto) => punto.rate);
+  let minimo = Math.min(...tasas);
+  let maximo = Math.max(...tasas);
+  const holgura = (maximo - minimo) * 0.1 || Math.abs(maximo) * 0.01 || 1;
+  minimo -= holgura;
+  maximo += holgura;
+
+  // Funciones de escala: índice -> X y tasa -> Y (en pixeles).
+  const pasoX = anchoUtil / (serie.length - 1);
+  const x = (indice) => margen.izquierda + indice * pasoX;
+  const y = (tasa) => margen.arriba + ((maximo - tasa) / (maximo - minimo)) * altoUtil;
+
+  const svg = crearSVG("svg", {
+    width: ancho,
+    height: alto,
+    viewBox: `0 0 ${ancho} ${alto}`,
+    role: "img",
+    "aria-label": historicoResumen.textContent
+  });
+
+  // Líneas guía horizontales con su valor (mínimo, medio y máximo).
+  [minimo, (minimo + maximo) / 2, maximo].forEach((valor) => {
+    svg.append(crearSVG("line", {
+      class: "chart-grid", x1: margen.izquierda, x2: ancho - margen.derecha, y1: y(valor), y2: y(valor)
+    }));
+    const etiqueta = crearSVG("text", {
+      class: "chart-axis-text", x: margen.izquierda - 8, y: y(valor) + 4, "text-anchor": "end"
+    });
+    etiqueta.textContent = formatearTasa(valor);
+    svg.append(etiqueta);
+  });
+
+  // Fechas de inicio y fin en el eje X.
+  [[0, "start"], [serie.length - 1, "end"]].forEach(([indice, ancla]) => {
+    const fecha = crearSVG("text", {
+      class: "chart-axis-text", x: x(indice), y: alto - 8, "text-anchor": ancla
+    });
+    fecha.textContent = formatearFecha(serie[indice].date);
+    svg.append(fecha);
+  });
+
+  // Línea y área bajo la línea.
+  const puntos = serie.map((punto, indice) => `${x(indice)},${y(punto.rate)}`);
+  const base = margen.arriba + altoUtil;
+  svg.append(crearSVG("path", {
+    class: "chart-area",
+    d: `M${x(0)},${base} L${puntos.join(" L")} L${x(serie.length - 1)},${base} Z`
+  }));
+  svg.append(crearSVG("path", { class: "chart-line", d: `M${puntos.join(" L")}` }));
+
+  // Elementos para el hover: línea vertical, punto y tooltip.
+  const guia = crearSVG("line", { class: "chart-guide", y1: margen.arriba, y2: base, visibility: "hidden" });
+  const marcador = crearSVG("circle", { class: "chart-dot", r: 5, visibility: "hidden" });
+  const zona = crearSVG("rect", {
+    x: margen.izquierda, y: 0, width: anchoUtil, height: alto, fill: "transparent"
+  });
+  svg.append(guia, marcador, zona);
+
+  const tooltip = document.createElement("div");
+  tooltip.className = "chart-tooltip";
+  tooltip.hidden = true;
+
+  zona.addEventListener("pointermove", (evento) => {
+    const caja = svg.getBoundingClientRect();
+    const posicion = evento.clientX - caja.left - margen.izquierda;
+    const indice = Math.min(serie.length - 1, Math.max(0, Math.round(posicion / pasoX)));
+    const punto = serie[indice];
+
+    guia.setAttribute("x1", x(indice));
+    guia.setAttribute("x2", x(indice));
+    marcador.setAttribute("cx", x(indice));
+    marcador.setAttribute("cy", y(punto.rate));
+    guia.setAttribute("visibility", "visible");
+    marcador.setAttribute("visibility", "visible");
+
+    tooltip.textContent = `${formatearFecha(punto.date)} · ${formatearTasa(punto.rate)} ${monedaDestino}`;
+    tooltip.style.left = `${Math.min(ancho - 80, Math.max(80, x(indice)))}px`;
+    tooltip.style.top = `${y(punto.rate)}px`;
+    tooltip.hidden = false;
+  });
+
+  zona.addEventListener("pointerleave", () => {
+    guia.setAttribute("visibility", "hidden");
+    marcador.setAttribute("visibility", "hidden");
+    tooltip.hidden = true;
+  });
+
+  grafica.append(svg, tooltip);
 }
 
 // PISTA PARA EL RETO:

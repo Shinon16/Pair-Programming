@@ -54,6 +54,21 @@
           <strong id="resultadoTexto">Esperando consulta...</strong>
           <small id="detalleTasa">La tasa se obtendrá al presionar Convertir.</small>
         </section>
+
+        <!-- MISIÓN 11: histórico del tipo de cambio (aparece después de la primera conversión) -->
+        <section id="historico" class="history" aria-labelledby="historicoTitulo" hidden>
+          <div class="history-head">
+            <h2 id="historicoTitulo" class="result-label">HISTÓRICO</h2>
+            <div class="period-group" role="group" aria-label="Periodo del histórico">
+              <button type="button" class="period" data-dias="7" aria-pressed="false">7 días</button>
+              <button type="button" class="period activo" data-dias="30" aria-pressed="true">30 días</button>
+              <button type="button" class="period" data-dias="90" aria-pressed="false">90 días</button>
+              <button type="button" class="period" data-dias="365" aria-pressed="false">1 año</button>
+            </div>
+          </div>
+          <p id="historicoResumen" class="history-summary" aria-live="polite"></p>
+          <div id="grafica" class="chart"></div>
+        </section>
       </section>
 
       <footer class="footer-note">HTML + CSS + JavaScript · Pair Programming</footer>
