@@ -17,4 +17,164 @@ input:focus,select:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(22,1
 .result{margin-top:22px;padding:22px;border-radius:14px;background:var(--soft);border-left:5px solid var(--teal);display:grid;gap:6px}.result-label{font-size:.72rem;font-weight:700;letter-spacing:.12em;color:var(--teal)}.result strong{font-size:1.35rem}.result small{color:var(--muted)}
 .result.error{background:var(--warn);border-left-color:#b56b13}.footer-note{text-align:center;padding:0 20px 22px;color:var(--muted);font-size:.78rem}
 input.invalido{border-color:#c0392b;background:#fff7f6;box-shadow:0 0 0 3px rgba(192,57,43,.12)}
-@media(max-width:600px){.hero,.panel{padding-left:22px;padding-right:22px}.currency-grid{grid-template-columns:1fr 46px 1fr;gap:8px}.swap{height:44px}.field label{font-size:.72rem}}
+
+/* ============================================================
+   MISIÓN 10: DISEÑO RESPONSIVE
+   ============================================================ */
+
+/* Mejorar la adaptación del contenido */
+.field,
+.currency-grid > * {
+  min-width: 0;
+}
+
+.result strong,
+.result small {
+  overflow-wrap: anywhere;
+}
+
+/* Estados visuales y accesibilidad */
+button {
+  transition: background-color .2s ease,
+              transform .2s ease,
+              box-shadow .2s ease;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(22,117,139,.35);
+  outline-offset: 3px;
+}
+
+button:disabled,
+input:disabled,
+select:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.swap:disabled {
+  transform: none;
+}
+
+/* Tablets */
+@media (max-width: 768px) {
+  .app-shell {
+    padding: 24px 16px;
+  }
+
+  .hero {
+    padding: 28px 26px;
+  }
+
+  .panel {
+    padding: 26px;
+  }
+
+  .currency-grid {
+    gap: 10px;
+  }
+}
+
+/* Celulares */
+@media (max-width: 600px) {
+  .app-shell {
+    padding: 14px;
+  }
+
+  .converter-card {
+    border-radius: 16px;
+  }
+
+  .hero {
+    padding: 26px 20px;
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+
+  .hero p {
+    font-size: .9rem;
+  }
+
+  .panel {
+    padding: 22px 18px;
+  }
+
+  /* Selectores uno debajo del otro */
+  .currency-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin: 20px 0;
+  }
+
+  /* Botón de intercambio centrado */
+  .swap {
+    justify-self: center;
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+  }
+
+  /* Controles cómodos para pantallas táctiles */
+  input,
+  select {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  .primary {
+    min-height: 50px;
+  }
+
+  /* Resultado adaptable */
+  .result {
+    margin-top: 20px;
+    padding: 18px;
+  }
+
+  .result strong {
+    font-size: 1.15rem;
+    line-height: 1.5;
+  }
+
+  .footer-note {
+    padding: 0 18px 20px;
+    line-height: 1.5;
+  }
+}
+
+/* Pantallas especialmente pequeñas */
+@media (max-width: 360px) {
+  .app-shell {
+    padding: 8px;
+  }
+
+  .hero {
+    padding: 22px 16px;
+  }
+
+  .panel {
+    padding: 18px 14px;
+  }
+
+  .hero h1 {
+    font-size: 1.7rem;
+  }
+
+  .result {
+    padding: 14px;
+  }
+}
+
+/* Accesibilidad: reducir animaciones */
+@media (prefers-reduced-motion: reduce) {
+  button,
+  input,
+  select {
+    transition: none;
+  }
+}

@@ -13,16 +13,33 @@
 | 07 | Pablo | Christian | Validación completa: vacío, no numérico, cero y negativo, con mensajes específicos y sin consultar la API. |
 | 08 | Christian | Pablo | Estado de carga, controles deshabilitados y restauración con finally  |
 | 09 | Pablo | Christian | Manejo de errores: response.ok, límite de 10 s con AbortController y mensaje claro según el tipo de fallo. |
-| 10 | | | |
+| 10 | Christian | Pablo | Diseño responsive para movil y escritorio |
+| 11 | | | |
 
 ## Objetivo
 Completar una aplicación frontend que consuma Frankfurter API para convertir divisas y demostrar comprensión de eventos, DOM, `fetch()`, JSON, asincronía, validación y manejo de errores.
 
 ## Ejecución
-1. Descomprime el proyecto.
-2. Abre la carpeta en VS Code.
-3. Ejecuta `index.html` con Live Server o un servidor local equivalente.
-4. Abre DevTools → Console y Network para observar el comportamiento.
+Requisitos
+
+1. Navegador web actualizado.
+2. Conexión a internet.
+3. Visual Studio Code, recomendado.
+4. Extensión Live Server o servidor local equivalente.
+
+Instrucciones
+
+1. Clonar el repositorio:
+
+git clone https://github.com/Shinon16/Pair-Programming.git
+
+2. Abrir la carpeta Pair-Programming en Visual Studio Code.
+3. Abrir index.html utilizando Live Server.
+4. Ingresar una cantidad mayor que cero.
+5. Seleccionar las monedas de origen y destino.
+6. Presionar Convertir para obtener el resultado.
+7. Utilizar el botón de intercambio para invertir las monedas cuando sea necesario.
+8. Para observar la comunicación con la API, abrir las herramientas de desarrollador del navegador mediante F12 y acceder a las pestañas Console y Network.
 
 ## API
 Endpoint de referencia:
@@ -31,15 +48,34 @@ Endpoint de referencia:
 ## Decisiones técnicas
 Registra aquí al menos dos decisiones tomadas por la pareja y explica por qué.
 
-1. Misión 05: usamos `Intl.NumberFormat` para formatear los montos en lugar de sólo `toFixed(2)`, porque agrega separador de miles (2,041.00) y respeta los decimales de cada moneda (el yen no usa decimales).
-2. Misión 07: validamos la cantidad antes del `fetch()` para no hacer peticiones innecesarias a la API, y usamos `cantidad.validity.badInput` porque un `<input type="number">` devuelve `""` cuando el texto escrito no es un número, así podemos distinguir "vacío" de "no válido".
-3. Misión 09: separamos la consulta en `obtenerTasa()` y le pusimos un límite de 10 segundos con `AbortController`, porque `fetch()` no tiene tiempo límite y, sin él, los controles deshabilitados en la Misión 08 se quedarían bloqueados si la red no responde. Además revisamos `response.ok`, ya que `fetch()` no lanza error ante un 404 o 500.
+1. Misión 04 – Selección dinámica de monedas: decidimos utilizar origen.value y destino.value para obtener las monedas seleccionadas por el usuario, en lugar de mantener valores fijos. Esto permite construir dinámicamente la URL de la API y realizar conversiones entre diferentes divisas sin modificar el código.
+2. Misión 05: usamos `Intl.NumberFormat` para formatear los montos en lugar de sólo `toFixed(2)`, porque agrega separador de miles (2,041.00) y respeta los decimales de cada moneda (el yen no usa decimales).
+3. Misión 06 – Intercambio de monedas: utilizamos una variable temporal para intercambiar los valores de los selectores y llamamos nuevamente a convertirMoneda(). De esta manera, el resultado se actualiza automáticamente sin necesidad de presionar otra vez el botón Convertir.
+4. Misión 07: validamos la cantidad antes del `fetch()` para no hacer peticiones innecesarias a la API, y usamos `cantidad.validity.badInput` porque un `<input type="number">` devuelve `""` cuando el texto escrito no es un número, así podemos distinguir "vacío" de "no válido".
+5. Misión 08 – Estado de carga: implementamos la función establecerCarga() para mostrar el mensaje "Consultando..." y deshabilitar temporalmente los controles mientras se realiza la solicitud. Utilizamos finally para asegurar que los controles vuelvan a habilitarse, incluso cuando ocurre un error.
+6. Misión 09: separamos la consulta en `obtenerTasa()` y le pusimos un límite de 10 segundos con `AbortController`, porque `fetch()` no tiene tiempo límite y, sin él, los controles deshabilitados en la Misión 08 se quedarían bloqueados si la red no responde. Además revisamos `response.ok`, ya que `fetch()` no lanza error ante un 404 o 500.
+7. Misión 10 – Diseño responsive: utilizamos CSS Grid y media queries para adaptar la interfaz a diferentes dispositivos. Decidimos organizar los selectores horizontalmente en computadoras y verticalmente en celulares, mejorando la visualización y facilidad de uso sin modificar la lógica JavaScript.
 
 ## Revisión cruzada
 - Aspecto bien resuelto:
+La aplicación integra correctamente la selección dinámica de monedas, el consumo de una API pública y el cálculo de conversiones. La separación de responsabilidades entre funciones JavaScript facilita comprender y revisar el código.
+
 - Error o comportamiento mejorable:
+Durante la revisión se identificó que las solicitudes a la API podían tardar demasiado o presentar errores, lo que podía generar incertidumbre para el usuario. También se observó que la disposición horizontal de los selectores no era la más adecuada para pantallas pequeñas.
+
 - Propuesta de mejora:
+Implementar un límite de tiempo para las solicitudes, mensajes de error específicos y controles deshabilitados durante la consulta. Asimismo, mejorar la distribución de los elementos mediante media queries para facilitar el uso desde dispositivos móviles.
+
 - Cambio incorporado después de la revisión:
+Implementar un límite de tiempo para las solicitudes, mensajes de error específicos y controles deshabilitados durante la consulta. Asimismo, mejorar la distribución de los elementos mediante media queries para facilitar el uso desde dispositivos móviles.
+
+Cambio incorporado después de la revisión:
+
+Se implementó AbortController con un límite de espera de 10 segundos, se mejoró el manejo de errores mediante response.ok y se incorporaron mensajes específicos para diferentes fallos. Además, se ajustó el diseño responsive para presentar los selectores verticalmente en pantallas pequeñas y mejorar la visualización de los resultados.
 
 ## Reflexión final (150–200 palabras)
-Explica el principal aprendizaje técnico, una dificultad relevante y una decisión que haya surgido del trabajo Driver/Navigator.
+Christian: Durante el desarrollo de Currency Explorer aprendimos cómo una aplicación web puede consumir información de una API pública y utilizarla para realizar operaciones en tiempo real. Comprendimos el funcionamiento de fetch(), async/await y la interpretación de respuestas JSON, así como la importancia de actualizar el DOM para mostrar información sin recargar la página. También reforzamos nuestros conocimientos sobre validaciones, manejo de errores y diseño responsive.
+
+Una de las principales dificultades fue asegurar que la aplicación respondiera correctamente ante diferentes situaciones, como cantidades inválidas, problemas de conexión o respuestas inesperadas de la API. Para resolverlo, implementamos validaciones antes de realizar las solicitudes y mejoramos el manejo de errores mediante funciones específicas.
+
+El trabajo mediante Pair Programming nos permitió compartir conocimientos y revisar nuestras decisiones constantemente. Al alternar los roles de Driver y Navigator, ambos participamos en la programación, las pruebas y la identificación de mejoras. Una decisión importante fue separar la lógica de consulta de la API del cálculo y la presentación de resultados, facilitando el mantenimiento del código y la comprensión de su funcionamiento.
