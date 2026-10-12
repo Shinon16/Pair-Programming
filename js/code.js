@@ -42,24 +42,23 @@ async function convertirMoneda() {
   const monedaOrigen = origen.value;
   const monedaDestino = destino.value;
 
-  const url = `https://api.frankfurter.dev/v2/rate/${monedaOrigen}/${monedaDestino}`;
-
   try {
   // MISIÓN 08: activar el estado de carga antes de consultar la API.
     establecerCarga(true);
 
-    const respuesta = await fetch(url);
-
-    // TODO · MISIÓN 09: comprobar response.ok y lanzar un error si corresponde.
-    const datos = await respuesta.json();
+    // MISIÓN 09: obtenerTasa() hace la petición, comprueba response.ok y
+    // valida el JSON; si algo falla lanza un error que llega al catch.
+    const datos = await obtenerTasa(monedaOrigen, monedaDestino);
 
     // MISIÓN 05: conversión completa.
     const conversion = calcularConversion(valor, datos.rate);
     mostrarResultado(valor, conversion, monedaOrigen, monedaDestino, datos);
 
   } catch (error) {
-    // TODO · MISIÓN 09: mejorar el manejo de errores.
-    mostrarError("No fue posible completar la consulta.");
+    // MISIÓN 09: cada tipo de fallo muestra un mensaje distinto y la interfaz
+    // se recupera (el finally de la Misión 08 vuelve a habilitar los controles).
+    const fallo = describirError(error);
+    mostrarError(fallo.mensaje, fallo.detalle);
     console.error(error);
 
   } finally {
@@ -72,6 +71,78 @@ async function convertirMoneda() {
 // probarlo y reutilizarlo (por ejemplo, al recalcular en la Misión 06).
 function calcularConversion(valor, tasa) {
   return valor * tasa;
+}
+
+// MISIÓN 09: tiempo máximo de espera de la API (en milisegundos).
+const TIEMPO_LIMITE_MS = 10000;
+
+// MISIÓN 09: consulta la API y regresa los datos sólo si la respuesta es correcta.
+// Si cambiáramos Frankfurter por otra API, ésta sería la función a modificar.
+async function obtenerTasa(monedaOrigen, monedaDestino) {
+  const url = `https://api.frankfurter.dev/v2/rate/${monedaOrigen}/${monedaDestino}`;
+
+  // AbortController cancela la petición si tarda más del límite; así los
+  // controles que deshabilita la Misión 08 no se quedan bloqueados.
+  const controlador = new AbortController();
+  const temporizador = setTimeout(() => controlador.abort(), TIEMPO_LIMITE_MS);
+
+  try {
+    const respuesta = await fetch(url, { signal: controlador.signal });
+
+    // fetch() sólo falla cuando no hay red; un 404 o un 500 llegan como una
+    // respuesta "normal", por eso hay que revisar response.ok.
+    if (!respuesta.ok) {
+      const error = new Error(`La API respondió con el código HTTP ${respuesta.status}`);
+      error.status = respuesta.status;
+      throw error;
+    }
+
+    // response.json() lanza SyntaxError si el cuerpo no es JSON válido.
+    const datos = await respuesta.json();
+
+    if (!Number.isFinite(datos.rate)) {
+      throw new SyntaxError("La respuesta no contiene una tasa válida.");
+    }
+
+    return datos;
+
+  } finally {
+    clearTimeout(temporizador);
+  }
+}
+
+// MISIÓN 09: traduce el error técnico a un mensaje claro para el usuario.
+function describirError(error) {
+  if (error.name === "AbortError") {
+    return { mensaje: "La consulta tardó demasiado.", detalle: "El servicio no respondió a tiempo. Inténtalo de nuevo." };
+  }
+
+  if (error.status === 404 || error.status === 422) {
+    return { mensaje: "La moneda seleccionada no es válida o no está disponible.", detalle: "Elige otra combinación de monedas." };
+  }
+
+  if (error.status === 429) {
+    return { mensaje: "Demasiadas consultas seguidas.", detalle: "Espera un momento antes de volver a convertir." };
+  }
+
+  if (error.status >= 500) {
+    return { mensaje: "El servicio de tipos de cambio no está disponible por ahora.", detalle: "Inténtalo más tarde." };
+  }
+
+  if (error.status) {
+    return { mensaje: `La API respondió con un error (código ${error.status}).`, detalle: "Inténtalo de nuevo." };
+  }
+
+  if (error instanceof SyntaxError) {
+    return { mensaje: "La respuesta del servicio no tiene el formato esperado.", detalle: "Inténtalo de nuevo más tarde." };
+  }
+
+  // fetch() lanza TypeError cuando no hay internet o no se alcanza el servidor.
+  if (error instanceof TypeError) {
+    return { mensaje: "No hay conexión con el servicio de tipos de cambio.", detalle: "Revisa tu conexión a internet e inténtalo de nuevo." };
+  }
+
+  return { mensaje: "No fue posible completar la consulta.", detalle: "Ocurrió un error inesperado. Inténtalo de nuevo." };
 }
 
 // MISIÓN 07: revisa la cantidad escrita y regresa { valor } si es válida
@@ -119,10 +190,11 @@ function intercambiarMonedas() {
 }
 
 // 4. UTILIDADES DE INTERFAZ
-function mostrarError(mensaje) {
+// MISIÓN 09: "detalle" es opcional; si no se envía se usa el texto de siempre.
+function mostrarError(mensaje, detalle = "Revisa los datos e inténtalo nuevamente.") {
   resultado.classList.add("error");
   resultadoTexto.textContent = mensaje;
-  detalleTasa.textContent = "Revisa los datos e inténtalo nuevamente.";
+  detalleTasa.textContent = detalle;
 }
 
 // MISIÓN 07: marca (o desmarca) el campo de cantidad como inválido.

@@ -12,7 +12,7 @@
 | 06 | Christian | Pablo | Intercambio de monedas y recalculo |
 | 07 | Pablo | Christian | Validación completa: vacío, no numérico, cero y negativo, con mensajes específicos y sin consultar la API. |
 | 08 | Christian | Pablo | Estado de carga, controles deshabilitados y restauración con finally  |
-| 09 | | | |
+| 09 | Pablo | Christian | Manejo de errores: response.ok, límite de 10 s con AbortController y mensaje claro según el tipo de fallo. |
 | 10 | | | |
 
 ## Objetivo
@@ -33,6 +33,7 @@ Registra aquí al menos dos decisiones tomadas por la pareja y explica por qué.
 
 1. Misión 05: usamos `Intl.NumberFormat` para formatear los montos en lugar de sólo `toFixed(2)`, porque agrega separador de miles (2,041.00) y respeta los decimales de cada moneda (el yen no usa decimales).
 2. Misión 07: validamos la cantidad antes del `fetch()` para no hacer peticiones innecesarias a la API, y usamos `cantidad.validity.badInput` porque un `<input type="number">` devuelve `""` cuando el texto escrito no es un número, así podemos distinguir "vacío" de "no válido".
+3. Misión 09: separamos la consulta en `obtenerTasa()` y le pusimos un límite de 10 segundos con `AbortController`, porque `fetch()` no tiene tiempo límite y, sin él, los controles deshabilitados en la Misión 08 se quedarían bloqueados si la red no responde. Además revisamos `response.ok`, ya que `fetch()` no lanza error ante un 404 o 500.
 
 ## Revisión cruzada
 - Aspecto bien resuelto:
