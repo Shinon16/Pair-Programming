@@ -19,6 +19,18 @@
 ## Objetivo
 Completar una aplicación frontend que consuma Frankfurter API para convertir divisas y demostrar comprensión de eventos, DOM, `fetch()`, JSON, asincronía, validación y manejo de errores.
 
+## Funcionalidades
+| Funcionalidad | Descripción | Misión |
+|---|---|---|
+| Conversión de divisas | Convierte la cantidad entre EUR, USD, MXN, GBP y JPY con el tipo de cambio real de Frankfurter API. | 01–04 |
+| Resultado formateado | Muestra el monto con separador de miles y los decimales de cada moneda (el yen sin decimales), además de la tasa y su fecha. | 05 |
+| Intercambio de monedas ⇄ | Invierte origen y destino y vuelve a calcular automáticamente. | 06 |
+| Validación de la cantidad | Detecta cantidad vacía, no numérica, cero o negativa; muestra un mensaje específico, marca el campo en rojo y no consulta la API. | 07 |
+| Estado de carga | Muestra "Consultando..." y deshabilita los controles mientras llega la respuesta. | 08 |
+| Manejo de errores | Comprueba `response.ok`, cancela la consulta después de 10 segundos y muestra un mensaje claro según el fallo (sin conexión, tiempo agotado, moneda inválida, demasiadas consultas, error del servidor o respuesta inválida). | 09 |
+| Diseño responsive | Se adapta a celular, tablet y escritorio; en pantallas pequeñas los selectores se acomodan uno debajo del otro. | 10 |
+| Histórico con gráfica | Después de convertir muestra la evolución del tipo de cambio en 7 días, 30 días, 90 días o 1 año, con gráfica de línea, tooltip y resumen de variación, mínimo y máximo. | 11 |
+
 ## Ejecución
 Requisitos
 
